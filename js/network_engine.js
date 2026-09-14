@@ -37,6 +37,7 @@ class NetworkEngine {
 
   resize() {
     this.initCanvasSize();
+    this.render();
   }
 
   initEventListeners() {
