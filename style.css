@@ -519,7 +519,8 @@ body {
   max-width: 800px;
 }
 .sidebar-pane > * {
-  direction: ltr; /* Reset content direction */
+  direction: ltr; /* Reset text direction for content */
+  flex-shrink: 0;
 }
 
 .sidebar-section {

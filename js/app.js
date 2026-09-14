@@ -597,6 +597,10 @@ document.addEventListener('DOMContentLoaded', () => {
   if (formZeroDay) {
     formZeroDay.addEventListener('submit', (e) => {
       e.preventDefault();
+      
+      const confirmReset = confirm("Deploying a new Zero-Day strain will reset the current simulation to a clean state. Proceed?");
+      if (!confirmReset) return;
+      
       const name      = document.getElementById('zd-name').value || 'Zero-Day Variant X';
       const category  = document.getElementById('zd-category').value || 'worm';
       const r0        = parseFloat(document.getElementById('zd-r0').value) || 4.5;

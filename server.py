@@ -19,8 +19,8 @@ from flask_cors import CORS
 app = Flask(__name__, static_folder='.', static_url_path='')
 CORS(app)
 
-# SQLite database stored in user's home directory for persistence across sessions
-DB_PATH = os.path.join(os.path.expanduser('~'), '.cyberoutbreak_malware.db')
+# SQLite database stored in the project directory for visibility
+DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'cyberoutbreak_malware.db')
 
 
 # ─────────────────────────────────────────────
@@ -64,6 +64,43 @@ def init_db():
             created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
+    
+    # Auto-seed with verifiable original data from CISA KEV if empty
+    count = db.execute('SELECT COUNT(*) FROM malware_entries').fetchone()[0]
+    if count == 0:
+        try:
+            import requests, json
+            print("Fetching verifiable original database from CISA KEV...")
+            resp = requests.get('https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json', timeout=10)
+            data = resp.json()
+            for vuln in data.get('vulnerabilities', [])[:30]:
+                uid = "cisa_" + vuln.get('cveID', '').replace('-', '_')
+                entry = {
+                    "id": uid,
+                    "name": vuln.get('vulnerabilityName', 'Unknown'),
+                    "category": "cisa_kev",
+                    "type": "Exploited Vulnerability",
+                    "year": int(vuln.get('dateAdded', '2020')[:4]),
+                    "origin": "Real World",
+                    "severity": "CRITICAL",
+                    "cve": vuln.get('cveID', ''),
+                    "vector": vuln.get('shortDescription', '')[:50],
+                    "r0": 3.0,
+                    "_source": "CISA_KEV"
+                }
+                db.execute('''
+                    INSERT OR IGNORE INTO malware_entries
+                    (id, name, category, type, year, origin, severity, cve, vector, r0, source, date_added, data_json)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ''', (
+                    uid, entry['name'], entry['category'], entry['type'], entry['year'],
+                    entry['origin'], entry['severity'], entry['cve'], entry['vector'],
+                    entry['r0'], entry['_source'], vuln.get('dateAdded', ''), json.dumps(entry)
+                ))
+            print("Successfully populated local DB with CISA KEV threats.")
+        except Exception as e:
+            print(f"Failed to auto-fetch CISA KEV: {e}")
+
     db.commit()
     db.close()
     print(f"[DB] Malware database initialized at: {DB_PATH}")
