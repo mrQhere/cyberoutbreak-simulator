@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CyberOutbreak &mdash; Malware Epidemic &amp; Device Jump Sequence Simulator</title>
+  <meta name="description" content="High-fidelity cyber threat epidemic simulator modeling malware jump sequences, device-to-device propagation, dynamic R0 curves, and daily threat intelligence updates.">
+  <link rel="stylesheet" href="style.css">
+  <!-- jsPDF for professional PDF report generation (client-side, no server) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+
+  <!-- App Header -->
+  <header class="app-header">
+    <div class="brand-section">
+      <div class="brand-icon" id="brand-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="8" y="7" width="8" height="13" rx="4"></rect>
+          <path d="M12 7V4"></path>
+          <path d="M6 10l-4-1"></path>
+          <path d="M6 14l-4 1"></path>
+          <path d="M6 18l-4 3"></path>
+          <path d="M18 10l4-1"></path>
+          <path d="M18 14l4 1"></path>
+          <path d="M18 18l4 3"></path>
+        </svg>
+      </div>
+      <div>
+        <h1 class="brand-title">GLOBAL THREAT INTELLIGENCE</h1>
+        <div class="brand-subtitle">&amp; EPIDEMIC SIMULATOR</div>
+      </div>
+    </div>
+
+    <div class="threat-status-section">
+      <div id="global-threat-badge" class="threat-badge warning">DEFCON 3: ELEVATED THREAT</div>
+    </div>
+
+    <div class="header-actions">
+      <button id="btn-sound" class="btn-header" title="Toggle audio feedback">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+        Audio ON
+      </button>
+
+      <button id="btn-open-database" class="btn-header" title="Open Known Malware Database">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+        <span id="threat-db-count-label">Threat Database</span>
+      </button>
+
+      <!-- Live Threat Feed Update Button -->
+      <button id="btn-open-threat-feed" class="btn-header feed-btn" title="Live Threat Intelligence Feed — Fetch new CVEs and malware from CISA KEV">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.65 3.49 2 2 0 0 1 3.62 1.3l3 .01a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        <span id="feed-btn-label">Live Feed</span>
+        <span id="feed-badge" class="feed-badge" style="display:none">0</span>
+      </button>
+
+      <!-- Generate PDF Report Button -->
+      <button id="btn-generate-report" class="btn-header report-btn" title="Generate Professional PDF Outbreak Report">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        PDF Report
+      </button>
+
+      <!-- Export Logs Button -->
+      <button id="btn-export-logs" class="btn-header" title="Export Raw Telemetry Logs (JSON)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export Logs
+      </button>
+
+      <button id="btn-open-zeroday" class="btn-header primary" title="Create custom zero-day strain">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        Synthesize Zero-Day
+      </button>
+    </div>
+  </header>
+
+  <!-- KPI Statistics Strip (Pandemic Tracker Style) -->
+  <section class="kpi-strip" aria-label="Epidemic Key Metrics">
+    <div class="kpi-card">
+      <span class="kpi-label">Monitored Endpoints</span>
+      <div class="kpi-val-row">
+        <span id="kpi-total-devices" class="kpi-value cyan">75</span>
+      </div>
+      <span class="kpi-sub dim">Multi-Device Mesh</span>
+    </div>
+
+    <div class="kpi-card">
+      <span class="kpi-label">Total Infected</span>
+      <div class="kpi-val-row">
+        <span id="kpi-infected" class="kpi-value red">1</span>
+        <span id="kpi-infected-pct" class="kpi-sub danger">1.3%</span>
+      </div>
+      <span class="kpi-sub danger">Active Compromises</span>
+    </div>
+
+    <div class="kpi-card">
+      <span class="kpi-label">Patched / Immune</span>
+      <div class="kpi-val-row">
+        <span id="kpi-patched" class="kpi-value emerald">0</span>
+        <span id="kpi-patched-pct" class="kpi-sub success">0.0%</span>
+      </div>
+      <span class="kpi-sub success">Signatures Deployed</span>
+    </div>
+
+    <div class="kpi-card">
+      <span class="kpi-label">Reproduction Rate (R0)</span>
+      <div class="kpi-val-row">
+        <span id="kpi-r0" class="kpi-value amber">5.8</span>
+      </div>
+      <span id="kpi-r0-status" class="kpi-sub danger">EXPONENTIAL SPREAD</span>
+    </div>
+
+    <div class="kpi-card">
+      <span class="kpi-label">Outbreak Timeline</span>
+      <div class="kpi-val-row">
+        <span id="kpi-current-day" class="kpi-value purple">DAY 1</span>
+      </div>
+      <span class="kpi-sub dim">Chronological Ticks</span>
+    </div>
+
+    <div class="kpi-card">
+      <span class="kpi-label">Est. Financial Impact</span>
+      <div class="kpi-val-row">
+        <span id="kpi-damage" class="kpi-value red">$12,000</span>
+      </div>
+      <span class="kpi-sub danger">Direct Loss &amp; Ransom</span>
+    </div>
+  </section>
+
+  <!-- Simulation Control Console Bar -->
+  <section class="control-bar" aria-label="Simulation Controls">
+    <div class="control-group">
+      <button id="btn-play" class="btn-ctrl play-btn" title="Start/Pause Outbreak">
+        <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        Launch Simulation
+      </button>
+
+      <button id="btn-step" class="btn-ctrl" title="Advance 1 Day">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>
+        Step (+1 Day)
+      </button>
+
+      <div class="speed-selector" title="Simulation Speed">
+        <button class="speed-btn active" data-speed="1">1x</button>
+        <button class="speed-btn" data-speed="2">2x</button>
+        <button class="speed-btn" data-speed="5">5x</button>
+        <button class="speed-btn" data-speed="10">10x</button>
+      </div>
+
+      <button id="btn-update-daily" class="btn-ctrl update-btn" title="Push daily patches and AV definitions">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+        Install Daily Updates
+      </button>
+
+      <label class="checkbox-toggle" title="Automatically roll out daily security updates">
+        <input type="checkbox" id="check-auto-update" checked>
+        <span>Auto-Update Feed</span>
+      </label>
+    </div>
+
+    <div class="control-group">
+      <label for="select-malware" class="kpi-label">Active Malware Threat:</label>
+      <select id="select-malware" class="custom-select" aria-label="Select Malware Profile">
+        <!-- Populated via database.js -->
+      </select>
+
+      <label for="select-topology" class="kpi-label">Network Topology:</label>
+      <select id="select-topology" class="custom-select" aria-label="Select Network Topology">
+        <option value="corporate">Corporate Enterprise LAN (HQ &amp; DMZ)</option>
+        <option value="iot_grid">Smart City IoT Grid &amp; Traffic Control</option>
+        <option value="healthcare">Hospital ICU &amp; Healthcare Network</option>
+        <option value="global">Global Internet Subnet Mesh</option>
+      </select>
+
+      <button id="btn-reset" class="btn-ctrl" title="Reset Network to Susceptible State">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+        Reset
+      </button>
+    </div>
+  </section>
+
+  <!-- Main Dashboard Workspace -->
+  <main class="main-dashboard-grid">
+    <!-- Visualizer Canvas Pane -->
+    <div class="visualizer-pane">
+      <canvas id="canvas-network"></canvas>
+
+      <!-- Canvas Floating HUD -->
+      <div class="canvas-hud">
+        <div class="hud-pill">
+          <span style="color:#38bdf8;">●</span> INTERACTIVE JUMP MESH
+        </div>
+        <div class="hud-pill">
+          <span>Scroll to Zoom &bull; Drag to Pan &bull; Click Device to Inspect</span>
+        </div>
+      </div>
+
+      <!-- Device State & Icon Legend -->
+      <div class="legend-pane">
+        <span class="legend-item"><span class="legend-dot green"></span> Susceptible</span>
+        <span class="legend-item"><span class="legend-dot amber"></span> Probing / Exposed</span>
+        <span class="legend-item"><span class="legend-dot red"></span> Active Exploit Hop</span>
+        <span class="legend-item"><span class="legend-dot purple"></span> Locked / Compromised</span>
+        <span class="legend-item"><span class="legend-dot cyan"></span> Patched / Immune</span>
+      </div>
+
+      <!-- Device Inspector Drawer (Sliding Pane) -->
+      <aside id="device-inspector" class="device-inspector-drawer" aria-label="Endpoint Inspection">
+        <div class="insp-header">
+          <div>
+            <div class="insp-title" id="insp-hostname">device-hostname</div>
+            <div class="insp-field-label" id="insp-ip">10.1.1.10</div>
+          </div>
+          <button id="btn-close-inspector" class="btn-close" aria-label="Close Inspector">&times;</button>
+        </div>
+
+        <div class="insp-field-group">
+          <div class="insp-field-label">DEVICE STATUS</div>
+          <div id="insp-status" class="status-badge susceptible">SUSCEPTIBLE</div>
+        </div>
+
+        <div class="insp-field-group">
+          <div class="insp-field-label">DEVICE TYPE &amp; OPERATING SYSTEM</div>
+          <div class="insp-field-val" id="insp-type">DESKTOP</div>
+          <div class="insp-field-val" style="color:var(--text-muted);font-size:0.75rem;" id="insp-os">Windows 11 Pro</div>
+        </div>
+
+        <div class="insp-field-group">
+          <div class="insp-field-label">ASSIGNED SUBNET / ZONE</div>
+          <div class="insp-field-val" id="insp-subnet">DMZ &amp; Web Perimeter</div>
+        </div>
+
+        <div class="insp-field-group">
+          <div class="insp-field-label">ACTIVE PAYLOAD / CONDITION</div>
+          <div class="insp-field-val" style="color:#f87171;" id="insp-payload">Clean</div>
+        </div>
+
+        <div class="insp-field-group">
+          <div class="insp-field-label">UNPATCH CVE VULNERABILITIES</div>
+          <div id="insp-cves">
+            <span class="cve-pill">CVE-2017-0144</span>
+            <span class="cve-pill">CVE-2021-44228</span>
+          </div>
+        </div>
+
+        <div class="insp-field-group">
+          <div class="insp-field-label">ENDPOINT EVENT LOG</div>
+          <div class="insp-logs-box" id="insp-logs">
+            <div class="insp-log-entry">[SYS] System operational</div>
+          </div>
+        </div>
+
+        <div class="insp-actions">
+          <button id="btn-insp-patch" class="btn-insp patch">Deploy Emergency Patch</button>
+          <button id="btn-insp-infect" class="btn-insp infect">Inject Threat Vector Here</button>
+          <button id="btn-insp-isolate" class="btn-insp isolate">Engage Zero-Trust Shield</button>
+        </div>
+      </aside>
+    </div>
+
+    <!-- Right Sidebar: Deep Analytics, Epidemic Charts & Real-Time Feeds -->
+    <aside class="sidebar-pane" aria-label="Analytics and Feeds">
+      <!-- Epidemic SEIR Trajectory Curve -->
+      <section class="sidebar-section">
+        <div class="sidebar-title">
+          <span>Infection Curve (SEIR Model)</span>
+          <span style="color:#ef4444;font-size:0.68rem;">● LIVE</span>
+        </div>
+        <div class="chart-wrapper">
+          <canvas id="chart-curve"></canvas>
+        </div>
+        <div class="chart-legend-row">
+          <span class="c-tag red">■ Infected</span>
+          <span class="c-tag green">■ Susceptible</span>
+          <span class="c-tag cyan">■ Patched</span>
+        </div>
+      </section>
+
+      <!-- Financial Damages Bar Chart -->
+      <section class="sidebar-section">
+        <div class="sidebar-title" style="display:flex; justify-content:space-between; align-items:center;">
+          <span>Financial Damages ($)</span>
+          <div class="toggle-group">
+            <button id="btn-dmg-daily" class="toggle-btn active">Daily</button>
+            <button id="btn-dmg-cum" class="toggle-btn">Total</button>
+          </div>
+        </div>
+        <div class="chart-wrapper">
+          <canvas id="chart-damages"></canvas>
+        </div>
+      </section>
+
+      <!-- Device Breakdown Donut Chart -->
+      <section class="sidebar-section">
+        <div class="sidebar-title">
+          <span>Infections by Device Ecosystem</span>
+        </div>
+        <div class="chart-wrapper donut-wrap">
+          <canvas id="chart-donut"></canvas>
+        </div>
+      </section>
+
+      <!-- R0 Reproduction Trendline -->
+      <section class="sidebar-section">
+        <div class="sidebar-title">
+          <span>Reproduction Rate (R0) Curve</span>
+        </div>
+        <div class="chart-wrapper">
+          <canvas id="chart-r0"></canvas>
+        </div>
+      </section>
+
+      <!-- Real-Time Jump Hop Log -->
+      <section class="sidebar-section">
+        <div class="sidebar-title">
+          <span>Jump Sequence Telemetry Hop Log</span>
+        </div>
+        <div class="jump-log-box" id="jump-logs-container" aria-live="polite">
+          <div class="jump-log-line">
+            <span class="log-time">--:--:--</span>
+            <span class="log-detail">Awaiting initial packet jump sequences...</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Daily Threat Intelligence Bulletins -->
+      <section class="sidebar-section">
+        <div class="sidebar-title">
+          <span>Daily Threat Intelligence Feed</span>
+        </div>
+        <div class="bulletin-box" id="bulletins-container" aria-live="polite">
+          <!-- Populated dynamically via simulation -->
+        </div>
+      </section>
+    </aside>
+  </main>
+
+  <!-- Modal 1: Known Malware Threat Intelligence Database -->
+  <div id="modal-database" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="db-modal-title">
+    <div class="modal-window">
+      <div class="modal-header">
+        <h3 class="modal-title" id="db-modal-title">Known Malware Threat Intelligence Database</h3>
+        <button id="btn-close-database" class="btn-close" aria-label="Close Database Modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="db-search-bar">
+          <input type="text" id="db-search-input" class="db-input" placeholder="Search by name, CVE, vector, or keyword (e.g., WannaCry, EternalBlue, Pegasus, IoT)...">
+          <div class="db-filter-pills">
+            <button class="db-filter-btn active" data-category="all">All</button>
+            <button class="db-filter-btn" data-category="worm">Worms</button>
+            <button class="db-filter-btn" data-category="ransomware">Ransomware</button>
+            <button class="db-filter-btn" data-category="botnet">Botnets</button>
+            <button class="db-filter-btn" data-category="spyware">Spyware</button>
+            <button class="db-filter-btn" data-category="scada">SCADA/OT</button>
+            <button class="db-filter-btn" data-category="supplychain">Supply Chain</button>
+            <button class="db-filter-btn" data-category="trojan">Trojans</button>
+          </div>
+        </div>
+
+        <div id="db-catalog-list" class="db-catalog-grid">
+          <!-- Populated dynamically via database.js -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 2: Custom Zero-Day Synthesizer -->
+  <div id="modal-zeroday" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="zd-modal-title">
+    <div class="modal-window" style="max-width: 620px;">
+      <div class="modal-header">
+        <h3 class="modal-title" id="zd-modal-title">Synthesize Custom Zero-Day Variant</h3>
+        <button id="btn-close-zeroday" class="btn-close" aria-label="Close Zero-Day Modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="form-zeroday">
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label" for="zd-name">Malware Strain Name</label>
+              <input type="text" id="zd-name" class="form-input" placeholder="e.g. ApexShadow.v1" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="zd-category">Threat Classification</label>
+              <select id="zd-category" class="form-input">
+                <option value="worm">Self-Replicating Network Worm</option>
+                <option value="ransomware">Cryptographic Ransomware</option>
+                <option value="botnet">IoT Swarm Botnet</option>
+                <option value="spyware">Zero-Click Mobile Spyware</option>
+                <option value="scada">Industrial SCADA Cyberweapon</option>
+                <option value="supplychain">Supply Chain Pipeline Poison</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="zd-r0">Basic Reproduction Rate (R0)</label>
+              <input type="number" id="zd-r0" class="form-input" min="0.5" max="12.0" step="0.1" value="5.2" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="zd-vector">Exploitation Vector</label>
+              <input type="text" id="zd-vector" class="form-input" value="Zero-Day Remote Memory Corruption" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="zd-stealth">Stealth Index (1-10)</label>
+              <input type="number" id="zd-stealth" class="form-input" min="1" max="10" value="8">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="zd-lethality">Payload Lethality (1-10)</label>
+              <input type="number" id="zd-lethality" class="form-input" min="1" max="10" value="9">
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-top: 14px;">
+            <label class="form-label">Target Device Ecosystem Affinity</label>
+            <div class="form-checkboxes">
+              <label class="form-cb-label"><input type="checkbox" id="zd-aff-pc" checked> Desktop PCs</label>
+              <label class="form-cb-label"><input type="checkbox" id="zd-aff-laptop" checked> Laptops</label>
+              <label class="form-cb-label"><input type="checkbox" id="zd-aff-phone" checked> Smart Phones</label>
+              <label class="form-cb-label"><input type="checkbox" id="zd-aff-server" checked> Cloud Servers</label>
+              <label class="form-cb-label"><input type="checkbox" id="zd-aff-iot" checked> Smart IoT</label>
+              <label class="form-cb-label"><input type="checkbox" id="zd-aff-scada"> SCADA / ICS</label>
+              <label class="form-cb-label"><input type="checkbox" id="zd-aff-medical"> Hospital Medical</label>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-submit-zd">Synthesize &amp; Deploy Strain</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 3: Live Threat Intelligence Feed & Database Updater -->
+  <div id="modal-threat-feed" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="tf-modal-title">
+    <div class="modal-window modal-feed-window">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title" id="tf-modal-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;display:inline-block;vertical-align:middle;margin-right:8px;color:#06b6d4;"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.65 3.49 2 2 0 0 1 3.62 1.3l3 .01a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            Live Threat Intelligence Feed
+          </h3>
+          <div class="feed-meta-row">
+            <span class="feed-meta-label">SOURCE:</span>
+            <span class="feed-meta-val">CISA KEV Catalog + Simulated Intelligence</span>
+            <span class="feed-meta-sep">|</span>
+            <span class="feed-meta-label">LAST SYNC:</span>
+            <span id="feed-last-sync" class="feed-meta-val">Never</span>
+            <span class="feed-meta-sep">|</span>
+            <span class="feed-meta-label">NEXT AUTO:</span>
+            <span id="feed-next-sync" class="feed-meta-val">24h</span>
+          </div>
+        </div>
+        <button id="btn-close-threat-feed" class="btn-close" aria-label="Close Feed Modal">&times;</button>
+      </div>
+
+      <!-- Feed Status Bar -->
+      <div id="feed-status-bar" class="feed-status-bar info">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span id="feed-status-text">Ready to fetch latest threat intelligence.</span>
+      </div>
+
+      <div class="modal-body feed-modal-body">
+        <!-- Feed Controls -->
+        <div class="feed-controls-row">
+          <button id="btn-fetch-now" class="btn-feed-action primary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+            Fetch Latest Now
+          </button>
+          <button id="btn-import-all" class="btn-feed-action success" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Import All New Threats
+          </button>
+          <div class="feed-filter-group">
+            <input type="text" id="feed-search" class="feed-search-input" placeholder="Filter by name, CVE, category...">
+          </div>
+          <div class="feed-stats-pill">
+            <span id="feed-count-total">0</span> threats &nbsp;|&nbsp;
+            <span id="feed-count-new" style="color:#06b6d4;">0 new</span>
+          </div>
+        </div>
+
+        <!-- Feed Entries Grid -->
+        <div id="feed-entries-grid" class="feed-entries-grid">
+          <div class="feed-empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:48px;height:48px;color:#334155"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.65 3.49 2 2 0 0 1 3.62 1.3l3 .01a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            <p>Click "Fetch Latest Now" to pull fresh threat intelligence from CISA KEV and simulated feeds.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PDF Report Toast Notification -->
+  <div id="report-toast" class="report-toast" style="display:none">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;color:#06b6d4"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+    <span id="report-toast-text">Generating PDF report...</span>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/icons.js"></script>
+  <script src="js/database.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/threat_feed.js"></script>
+  <script src="js/report_engine.js"></script>
+  <script src="js/network_engine.js"></script>
+  <script src="js/simulation_engine.js"></script>
+  <script src="js/charts_engine.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
