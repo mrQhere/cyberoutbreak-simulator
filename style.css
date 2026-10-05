@@ -731,7 +731,11 @@ body {
 .status-badge.exposed { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
 .status-badge.infected { background: rgba(239, 68, 68, 0.2); color: #f87171; }
 .status-badge.compromised { background: rgba(139, 92, 246, 0.2); color: #c084fc; }
+.status-badge.recovering { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+.status-badge.recovered { background: rgba(16, 185, 129, 0.25); color: #10b981; }
 .status-badge.patched { background: rgba(6, 182, 212, 0.2); color: #38bdf8; }
+.status-badge.isolated { background: rgba(245, 158, 11, 0.25); color: #f59e0b; }
+.status-badge.decommissioned { background: rgba(100, 116, 139, 0.25); color: #94a3b8; }
 
 .cve-pill {
   display: inline-block;
@@ -1600,4 +1604,273 @@ body {
 .btn-edit-malware:hover {
   background: rgba(245, 158, 11, 0.2);
   box-shadow: 0 0 8px rgba(245, 158, 11, 0.3);
+}
+
+/* Seed Control Group */
+.seed-control-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-glass);
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+.seed-label {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--accent-cyan);
+}
+.seed-input {
+  width: 78px;
+  background: transparent;
+  border: 1px solid var(--border-glass);
+  border-radius: 4px;
+  color: var(--text-main);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  padding: 2px 6px;
+  font-weight: 600;
+}
+.seed-input:focus {
+  outline: none;
+  border-color: var(--accent-cyan);
+}
+.btn-seed-dice {
+  background: transparent;
+  border: none;
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 0 2px;
+  transition: transform 0.2s;
+}
+.btn-seed-dice:hover {
+  transform: rotate(45deg) scale(1.1);
+}
+
+/* Patient Zero Banner */
+.patient-zero-banner {
+  position: absolute;
+  top: 12px;
+  left: 16px;
+  z-index: 10;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3), 0 0 12px rgba(239, 68, 68, 0.15);
+  border-radius: 8px;
+  padding: 6px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  pointer-events: none;
+}
+.pz-badge {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: #ffffff;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  padding: 2px 8px;
+  border-radius: 4px;
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
+}
+.pz-meta {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: #e2e8f0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.pz-node {
+  color: #fca5a5;
+  font-weight: 700;
+}
+.pz-sep {
+  color: #64748b;
+}
+
+/* Replay Scrubber Controls */
+.replay-controls-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.replay-toggle-btn {
+  background: rgba(126, 34, 206, 0.1);
+  border-color: rgba(126, 34, 206, 0.4);
+  color: #7e22ce;
+}
+.replay-toggle-btn.active {
+  background: #7e22ce;
+  color: #ffffff;
+  box-shadow: 0 0 12px rgba(126, 34, 206, 0.4);
+}
+.replay-scrubber-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-glass);
+  padding: 3px 10px;
+  border-radius: 6px;
+}
+.replay-range-slider {
+  accent-color: #7e22ce;
+  cursor: pointer;
+}
+.replay-tick-tag {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #7e22ce;
+  min-width: 45px;
+}
+
+/* Device Inspector Extensions */
+.insp-meta-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 12px;
+  font-size: 0.75rem;
+  font-family: var(--font-mono);
+  background: var(--bg-base);
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border-glass);
+}
+.dim-label {
+  color: var(--text-dim);
+  font-size: 0.68rem;
+}
+.services-list-box {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.svc-tag {
+  background: rgba(2, 132, 199, 0.1);
+  border: 1px solid rgba(2, 132, 199, 0.3);
+  color: #0284c7;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* Causal Chain Explanation Box */
+.causal-group {
+  margin-top: 4px;
+}
+.causal-chain-box {
+  background: var(--bg-base);
+  border: 1px solid var(--border-glass);
+  border-radius: 6px;
+  padding: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 180px;
+  overflow-y: auto;
+}
+.causal-factor-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 3px 6px;
+  background: var(--bg-card);
+  border-radius: 4px;
+  border-left: 3px solid var(--border-glass);
+}
+.causal-factor-item.factor-pos {
+  border-left-color: var(--accent-red);
+}
+.causal-factor-item.factor-neg {
+  border-left-color: var(--accent-cyan);
+}
+.factor-delta {
+  font-weight: 700;
+}
+.factor-delta.pos {
+  color: var(--accent-red);
+}
+.factor-delta.neg {
+  color: var(--accent-cyan);
+}
+.causal-summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 4px;
+  padding-top: 6px;
+  border-top: 1px dashed var(--border-glass);
+  font-weight: 700;
+}
+.causal-result-badge {
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.68rem;
+}
+.causal-result-badge.exploited {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+.causal-result-badge.blocked {
+  background: rgba(6, 182, 212, 0.2);
+  color: #06b6d4;
+}
+
+/* Attack Graph & Lineage Modal Tree */
+.attack-tree-container {
+  max-height: 55vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  background: var(--bg-base);
+  border: 1px solid var(--border-glass);
+  border-radius: 8px;
+}
+.lineage-tree-node {
+  background: var(--bg-card);
+  border: 1px solid var(--border-glass);
+  border-radius: 6px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  transition: transform 0.15s, border-color 0.15s;
+}
+.lineage-tree-node:hover {
+  border-color: var(--accent-cyan);
+  transform: translateX(3px);
+}
+.lineage-depth-indent {
+  display: inline-block;
+  color: var(--text-dim);
+  margin-right: 6px;
+}
+
+/* Saved Runs List */
+.saved-runs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.saved-run-card {
+  background: var(--bg-base);
+  border: 1px solid var(--border-glass);
+  border-radius: 6px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }

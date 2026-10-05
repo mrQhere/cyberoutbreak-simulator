@@ -1,114 +1,93 @@
-# CyberOutbreak — User Guide
+# CyberOutbreak — The Unofficial Field Guide 🦠
 
-## Overview
+Welcome to **CyberOutbreak Simulator**. You’ve successfully managed to get your hands on a professional cyber-epidemic modeling platform. Don’t panic—it’s designed to be completely **Plug & Play**.
 
-CyberOutbreak is a professional cyber threat epidemic simulator. It models how malware propagates across network topologies using a modified SEIR epidemiological model, populated with real-world threat intelligence from CISA KEV, NVD, and MalwareBazaar.
+This guide is your best friend. Whether you're here to learn about malware propagation, test incident response, or just watch things turn red, we’ve got you covered.
 
 ---
 
-## Interface Layout
+## ⚡ Plug & Play: How to Start Breaking Things (Safely)
 
-| Zone | Description |
+We meant it when we said Plug & Play. Here’s the 1-2-3 of starting a simulation:
+
+1. **Fire it up:** Run `./start.sh` in your terminal and open `http://127.0.0.1:8000`.
+2. **Pick a Poison:** Choose a **Scenario** from the top dropdown (e.g., *Corporate Ransomware* or *IoT Botnet*).
+3. **Roll the Dice:** Set a **Seed** (like `12345`) so your outbreak is 100% reproducible. 
+4. **Hit Play:** Click **Launch Simulation** and watch the chaos unfold.
+
+*Pro Tip: Use the speed multipliers (up to 100x) if you’re impatient. The math stays perfectly accurate no matter how fast it renders.*
+
+---
+
+## 🛡️ The "No Inaccurate Data" Principle
+
+Let’s get one thing straight: **If the math can't prove it, we don't fake it.** 
+- Every infection event has a mathematical causal receipt.
+- If there’s not enough data to calculate an empirical $R_t$ (Reproduction Number), we proudly display **"N/A"**. We will never show you manipulative or guessed data.
+- **Safety Guarantee:** This is an abstract environment. There are **zero real vulnerabilities**, **zero real malware**, and absolutely nothing here will escape and attack your actual laptop. (You're welcome).
+
+---
+
+## 🕹️ Interface Layout: What am I looking at?
+
+| Zone | What it does (and why you care) |
 |------|-------------|
-| **Header** | App branding, threat status badge, and action buttons |
-| **KPI Strip** | Live counters — infected devices, patched %, R0, day, financial impact |
-| **Control Bar** | Simulation controls, malware selector, topology selector |
-| **Network Canvas** | Interactive node graph — drag, zoom, click to inspect |
-| **Right Sidebar** | SEIR chart, financial damages, device breakdown donut, R0 trend, jump log, bulletins |
+| **Header** | Your command center. Threat badges, seed rolling (🎲), and big buttons. |
+| **KPI Strip** | Live scoreboards. Infected devices, patched percentages, and exactly how many dollars the breach is costing your imaginary company. |
+| **Network Canvas** | The battlefield. Drag, zoom, and click on nodes to inspect them. |
+| **Right Sidebar** | Data nerds rejoice: SEIR charts, $R_t$ trends, financial damages, and live bulletins. |
 
 ---
 
-## Header Buttons
+## 🦠 The 9-State Epidemiological Machine
 
-| Button | Function |
-|--------|----------|
-| **Audio ON / Muted** | Toggle sound effects |
-| **Threat Database (N)** | Open the local malware catalog — count updates dynamically as you import threats |
-| **Live Feed** | Open the live threat intelligence feed (CISA KEV + NVD + MalwareBazaar) |
-| **PDF Report** | Download a PDF report — only available when simulation is paused |
-| **Export Logs** | Download raw simulation data as a JSON file |
-| **Synthesize Zero-Day** | Create a custom malware strain with configurable parameters |
+Nodes aren't just "good" or "bad". They live complex lives:
 
----
-
-## Starting a Simulation
-
-1. Select an **Active Malware Threat** from the dropdown in the Control Bar
-   - Changing threats prompts a confirmation and resets to a clean state
-2. Select a **Network Topology** (Corporate LAN, IoT Grid, Healthcare, Global Subnet)
-3. Click **Launch Simulation** — a Patient Zero device is randomly infected
-4. Use **Step (+1 Day)** to advance manually, or set a speed multiplier (1x–10x)
-5. Click **Install Daily Updates** to push patches mid-simulation
+| Color | State | What it means in plain English |
+|-------|-------|----------------------------------|
+| 🟢 Green | `SUSCEPTIBLE` | Ignorance is bliss. Clean, but vulnerable. |
+| 🟠 Amber | `EXPOSED` | They clicked the link. Malware is incubating. |
+| 🔴 Red | `INFECTED` | Active infection. Spreading the love to neighbors. |
+| 🟣 Purple | `COMPROMISED` | Game over. Ransomware deployed or data exfiltrated. |
+| 🔵 Blue | `RECOVERING` | IT is frantically restoring from backups. |
+| ✨ Emerald | `RECOVERED` | Clean and immune (for now). |
+| 🛡️ Cyan | `PATCHED` | Vulnerability closed. Transmission probability neutralized. |
+| 🚧 Orange | `ISOLATED` | Quarantined. Cannot talk to anyone. |
+| 🪦 Slate | `DECOMMISSIONED` | R.I.P. Server thrown out the window. |
 
 ---
 
-## Simulation States (SEIR Model)
+## 🕵️ Device Inspector (The "Why is this node infected?" Tool)
 
-| Color | State | Description |
-|-------|-------|-------------|
-| Green | Susceptible | Clean, uninfected, vulnerable |
-| Amber | Exposed | Being scanned or brute-forced |
-| Red | Infected | Actively compromised, spreading |
-| Purple | Compromised | Fully locked (e.g. ransomware) |
-| Cyan | Patched | Secured, cannot be reinfected |
+Click any device on the canvas to open the **Device Inspector**. 
+This is where the magic happens. You’ll see:
+- Identity, IP, OS, and Business Value.
+- **Causal Chain Breakdown**: The exact math that led to infection. You’ll see base virulence, subnet bonuses (+0.20), CVE matches (+0.25), and EDR deductions (-0.20). No guessing required.
 
----
-
-## Network Canvas Interactions
-
-- **Scroll** — Zoom in/out
-- **Drag** — Pan the network
-- **Click a Device** — Opens the Device Inspector with:
-  - Device details, CVEs, event log
-  - **Deploy Emergency Patch** — Instantly patches the device
-  - **Inject Threat Vector** — Manually infect the device
-  - **Engage Zero-Trust Shield** — Toggle firewall isolation
+**Incident Response Actions:**
+- **Investigate**: Probe telemetry to confirm threat indicators.
+- **Isolate Endpoint**: Sever network ties instantly.
+- **Deploy Hotfix**: Patch the CVE.
+- **Restore Clean Image**: Bring them back from the dead.
 
 ---
 
-## Threat Intelligence Database
+## 💥 Chaos Engineering & Failure Injection
 
-The **Threat Database** button shows the live count of all loaded threats (built-in + imported). Each card shows R0, stealth, lethality, mutation rate, CVE, vector, and MITRE ATT&CK TTP mapping.
-
-- **Deploy to Network** — Activate the threat immediately
-- **Edit & Fork** — Clone into the Zero-Day creator
-
----
-
-## Live Threat Feed
-
-1. Click **Live Feed**
-2. Click **Fetch Latest Now** — pulls from:
-   - CISA KEV (Known Exploited Vulnerabilities)
-   - NVD (National Vulnerability Database)
-   - MalwareBazaar (real-world recent malware samples)
-3. Click **Import to DB** or **Import All New Threats**
-4. Imported threats are persisted to `~/.cyberoutbreak_malware.db` and available across sessions
-
-> The server must be running (`./start.sh`) for live feeds and persistence.
+Because things don't go wrong enough in real life, you can force them to go wrong here.
+Click the **Failure Injection** button to:
+- Drop firewalls.
+- Crash EDR agents.
+- Simulate a router failure.
+Stress-test your network's resilience while under active attack.
 
 ---
 
-## PDF Report
+## 💾 Save, Load, and Export
 
-Only available when the simulation is **paused**. Includes malware profile, KPI summary, and all charts with solid white backgrounds.
+We respect your time. 
+- Click **Save / Load** to persist your current disaster to the local SQLite database.
+- Use the **Replay Scrubber** (next to the Play button) to rewind time tick-by-tick if you missed exactly *when* the domain controller fell.
+- Hit **Export Logs** to grab the raw JSON telemetry for your own external analysis.
 
----
-
-## Export Logs (JSON)
-
-Downloads a JSON snapshot at any time: active malware profile, stats, and full tick-by-tick simulation history.
-
----
-
-## Synthesize Zero-Day
-
-Create custom malware with full control over R0, stealth, lethality, attack vector, and per-device-type affinity weights.
-
----
-
-## Server & Database
-
-Run `./start.sh` to start the local Flask server at `http://127.0.0.1:8000`.  
-The SQLite database is stored at `~/.cyberoutbreak_malware.db`.  
-Without the server, the app runs with the built-in static database only.
+Happy hunting, and remember: it’s just a simulation. *Breathe.*

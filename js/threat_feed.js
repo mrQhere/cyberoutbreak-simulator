@@ -216,7 +216,8 @@ class ThreatFeedEngine {
       const entry = this._mapKEVToMalware(mappedV, id);
       entry._source = 'NVD_API';
       entry.origin = 'National Vulnerability Database';
-      
+      entries.push(entry);
+    }
     return entries;
   }
 

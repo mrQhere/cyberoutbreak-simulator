@@ -49,9 +49,16 @@ class ReportEngine {
     }
 
     const { jsPDF } = window.jspdf || window;
-    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-    const malware = simulation.activeMalware;
-    const history = simulation.history || [];
+    const malware = simulation.activeThreat || simulation.activeMalware || {
+      name: 'Simulated Threat Outbreak',
+      type: 'Lateral Malware Exploit',
+      category: 'worm',
+      vector: 'Remote Code Execution',
+      r0: 4.8,
+      severity: 'CRITICAL',
+      cve: 'CVE-2017-0144'
+    };
+    const history = (simulation.metricsEngine && simulation.metricsEngine.telemetryHistory) || simulation.history || [];
     const now = new Date();
     const reportId = `CBO-${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}-${Math.floor(Math.random()*9000+1000)}`;
 

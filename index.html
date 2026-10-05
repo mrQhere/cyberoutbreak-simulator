@@ -8,6 +8,10 @@
   <link rel="stylesheet" href="style.css">
   <!-- jsPDF for professional PDF report generation (client-side, no server) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
+    window.errors = [];
+    window.addEventListener('error', function(e) { window.errors.push(e.message || String(e)); });
+  </script>
 </head>
 <body>
 
@@ -37,9 +41,28 @@
     </div>
 
     <div class="header-actions">
+      <!-- Deterministic Seed Control -->
+      <div class="seed-control-group" title="Deterministic Simulation Seed (PRNG Mulberry32)">
+        <span class="seed-label">SEED:</span>
+        <input type="number" id="input-seed" class="seed-input" value="12345" min="1" max="99999999">
+        <button id="btn-random-seed" class="btn-seed-dice" title="Roll New Seed">🎲</button>
+      </div>
+
       <button id="btn-sound" class="btn-header" title="Toggle audio feedback">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
         Audio ON
+      </button>
+
+      <!-- Attack Graph / Lineage Modal Button -->
+      <button id="btn-open-attack-tree" class="btn-header" title="Open Attack Graph &amp; Transmission Lineage Tree">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+        Attack Graph
+      </button>
+
+      <!-- Failure Injection Console Button -->
+      <button id="btn-open-failure-injector" class="btn-header" title="Inject Simulated Failures (Firewall, EDR, Partition)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        Failure Injection
       </button>
 
       <button id="btn-open-database" class="btn-header" title="Open Known Malware Database">
@@ -52,6 +75,12 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.65 3.49 2 2 0 0 1 3.62 1.3l3 .01a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
         <span id="feed-btn-label">Live Feed</span>
         <span id="feed-badge" class="feed-badge" style="display:none">0</span>
+      </button>
+
+      <!-- Save / Load Simulation Runs Button -->
+      <button id="btn-open-save-load" class="btn-header" title="Save, Load, Export, or Import Simulation Runs">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Save / Load
       </button>
 
       <!-- Generate PDF Report Button -->
@@ -73,7 +102,7 @@
     </div>
   </header>
 
-  <!-- KPI Statistics Strip (Pandemic Tracker Style) -->
+  <!-- KPI Statistics Strip (Epidemiological & Cyber Defense Metrics) -->
   <section class="kpi-strip" aria-label="Epidemic Key Metrics">
     <div class="kpi-card">
       <span class="kpi-label">Monitored Endpoints</span>
@@ -84,45 +113,45 @@
     </div>
 
     <div class="kpi-card">
-      <span class="kpi-label">Total Infected</span>
+      <span class="kpi-label">Active / Compromised</span>
       <div class="kpi-val-row">
         <span id="kpi-infected" class="kpi-value red">1</span>
         <span id="kpi-infected-pct" class="kpi-sub danger">1.3%</span>
       </div>
-      <span class="kpi-sub danger">Active Compromises</span>
+      <span class="kpi-sub danger">Infected &amp; Compromised</span>
     </div>
 
     <div class="kpi-card">
-      <span class="kpi-label">Patched / Immune</span>
+      <span class="kpi-label">Remediated &amp; Patched</span>
       <div class="kpi-val-row">
         <span id="kpi-patched" class="kpi-value emerald">0</span>
         <span id="kpi-patched-pct" class="kpi-sub success">0.0%</span>
       </div>
-      <span class="kpi-sub success">Signatures Deployed</span>
+      <span class="kpi-sub success">Hardened &amp; Recovered</span>
     </div>
 
     <div class="kpi-card">
-      <span class="kpi-label">Reproduction Rate (R0)</span>
+      <span class="kpi-label">Effective Rt (Observed)</span>
       <div class="kpi-val-row">
-        <span id="kpi-r0" class="kpi-value amber">5.8</span>
+        <span id="kpi-r0" class="kpi-value amber">N/A</span>
       </div>
-      <span id="kpi-r0-status" class="kpi-sub danger">EXPONENTIAL SPREAD</span>
+      <span id="kpi-r0-status" class="kpi-sub dim">AWAITING LINEAGE DATA</span>
     </div>
 
     <div class="kpi-card">
-      <span class="kpi-label">Outbreak Timeline</span>
+      <span class="kpi-label">Simulation Timeline</span>
       <div class="kpi-val-row">
-        <span id="kpi-current-day" class="kpi-value purple">DAY 1</span>
+        <span id="kpi-current-day" class="kpi-value purple">TICK 0</span>
       </div>
-      <span class="kpi-sub dim">Chronological Ticks</span>
+      <span class="kpi-sub dim">Authoritative Ticks</span>
     </div>
 
     <div class="kpi-card">
       <span class="kpi-label">Est. Financial Impact</span>
       <div class="kpi-val-row">
-        <span id="kpi-damage" class="kpi-value red">$12,000</span>
+        <span id="kpi-damage" class="kpi-value red">$0</span>
       </div>
-      <span class="kpi-sub danger">Direct Loss &amp; Ransom</span>
+      <span class="kpi-sub danger">Criticality &amp; Downtime Loss</span>
     </div>
   </section>
 
@@ -134,44 +163,71 @@
         Launch Simulation
       </button>
 
-      <button id="btn-step" class="btn-ctrl" title="Advance 1 Day">
+      <button id="btn-step" class="btn-ctrl" title="Advance Authoritative Simulation by 1 Tick">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>
-        Step (+1 Day)
+        Step (+1 Tick)
       </button>
 
-      <div class="speed-selector" title="Simulation Speed">
+      <div class="speed-selector" title="Simulation Presentation Speed">
+        <button class="speed-btn" data-speed="0.25">0.25x</button>
         <button class="speed-btn active" data-speed="1">1x</button>
         <button class="speed-btn" data-speed="2">2x</button>
         <button class="speed-btn" data-speed="5">5x</button>
         <button class="speed-btn" data-speed="10">10x</button>
+        <button class="speed-btn" data-speed="100">100x</button>
       </div>
 
-      <button id="btn-update-daily" class="btn-ctrl update-btn" title="Push daily patches and AV definitions">
+      <!-- Authoritative Replay Scrubber -->
+      <div class="replay-controls-group">
+        <button id="btn-toggle-replay" class="btn-ctrl replay-toggle-btn" title="Toggle Authoritative Historical Replay">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Replay
+        </button>
+        <div id="replay-scrubber-box" class="replay-scrubber-box" style="display:none;">
+          <input type="range" id="replay-slider" min="0" max="0" value="0" class="replay-range-slider">
+          <span id="replay-tick-val" class="replay-tick-tag">Tick 0</span>
+        </div>
+      </div>
+
+      <button id="btn-update-daily" class="btn-ctrl update-btn" title="Push daily security patches and signatures">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-        Install Daily Updates
+        Deploy Patches
       </button>
 
-      <label class="checkbox-toggle" title="Automatically roll out daily security updates">
+      <label class="checkbox-toggle" title="Automatically roll out defense policies">
         <input type="checkbox" id="check-auto-update" checked>
-        <span>Auto-Update Feed</span>
+        <span>Auto-Defend</span>
       </label>
     </div>
 
     <div class="control-group">
-      <label for="select-malware" class="kpi-label">Active Malware Threat:</label>
-      <select id="select-malware" class="custom-select" aria-label="Select Malware Profile">
-        <!-- Populated via database.js -->
+      <label for="select-scenario" class="kpi-label">Scenario:</label>
+      <select id="select-scenario" class="custom-select" aria-label="Select Outbreak Scenario">
+        <option value="scenario-corporate-ransomware">Corporate Ransomware Outbreak</option>
+        <option value="scenario-iot-botnet">IoT Botnet Swarm</option>
+        <option value="scenario-healthcare">Hospital ICU &amp; Healthcare Network</option>
+        <option value="scenario-scada-ot">SCADA / OT Critical Infrastructure</option>
+        <option value="scenario-supply-chain">Supply Chain Compromise</option>
+        <option value="scenario-fast-worm">Fast Worm (WannaCry EternalBlue)</option>
+        <option value="scenario-stealthy-apt">Stealthy APT (SolarWinds SUNBURST)</option>
+        <option value="scenario-custom">Custom Zero-Day Outbreak</option>
       </select>
 
-      <label for="select-topology" class="kpi-label">Network Topology:</label>
+      <label for="select-malware" class="kpi-label">Threat Profile:</label>
+      <select id="select-malware" class="custom-select" aria-label="Select Malware Profile">
+        <!-- Populated dynamically via database.js & BuiltInThreats -->
+      </select>
+
+      <label for="select-topology" class="kpi-label">Topology:</label>
       <select id="select-topology" class="custom-select" aria-label="Select Network Topology">
         <option value="corporate">Corporate Enterprise LAN (HQ &amp; DMZ)</option>
-        <option value="iot_grid">Smart City IoT Grid &amp; Traffic Control</option>
+        <option value="iot_grid">Smart City IoT Grid &amp; Traffic Mesh</option>
         <option value="healthcare">Hospital ICU &amp; Healthcare Network</option>
+        <option value="scada_ot">SCADA Industrial ICS / Power Grid</option>
         <option value="global">Global Internet Subnet Mesh</option>
       </select>
 
-      <button id="btn-reset" class="btn-ctrl" title="Reset Network to Susceptible State">
+      <button id="btn-reset" class="btn-ctrl" title="Reset Network and Outbreak State">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
         Reset
       </button>
@@ -182,6 +238,20 @@
   <main class="main-dashboard-grid">
     <!-- Visualizer Canvas Pane -->
     <div class="visualizer-pane">
+      <!-- Patient Zero Attribution Banner -->
+      <div id="patient-zero-banner" class="patient-zero-banner">
+        <span class="pz-badge">PATIENT ZERO</span>
+        <div class="pz-meta">
+          <span id="pz-node-label" class="pz-node">HOST: --</span>
+          <span class="pz-sep">&bull;</span>
+          <span id="pz-vector-label">VECTOR: --</span>
+          <span class="pz-sep">&bull;</span>
+          <span id="pz-reason-label">REASON: Initial Breach</span>
+          <span class="pz-sep">&bull;</span>
+          <span id="pz-tick-label">TICK 0</span>
+        </div>
+      </div>
+
       <canvas id="canvas-network"></canvas>
 
       <!-- Canvas Floating HUD -->
@@ -197,10 +267,12 @@
       <!-- Device State & Icon Legend -->
       <div class="legend-pane">
         <span class="legend-item"><span class="legend-dot green"></span> Susceptible</span>
-        <span class="legend-item"><span class="legend-dot amber"></span> Probing / Exposed</span>
-        <span class="legend-item"><span class="legend-dot red"></span> Active Exploit Hop</span>
-        <span class="legend-item"><span class="legend-dot purple"></span> Locked / Compromised</span>
+        <span class="legend-item"><span class="legend-dot amber"></span> Exposed (Incubating)</span>
+        <span class="legend-item"><span class="legend-dot red"></span> Infected</span>
+        <span class="legend-item"><span class="legend-dot purple"></span> Compromised</span>
+        <span class="legend-item"><span class="legend-dot blue"></span> Recovering</span>
         <span class="legend-item"><span class="legend-dot cyan"></span> Patched / Immune</span>
+        <span class="legend-item"><span class="legend-dot gray"></span> Isolated</span>
       </div>
 
       <!-- Device Inspector Drawer (Sliding Pane) -->
@@ -214,45 +286,73 @@
         </div>
 
         <div class="insp-field-group">
-          <div class="insp-field-label">DEVICE STATUS</div>
+          <div class="insp-field-label">DEVICE STATE</div>
           <div id="insp-status" class="status-badge susceptible">SUSCEPTIBLE</div>
         </div>
 
         <div class="insp-field-group">
-          <div class="insp-field-label">DEVICE TYPE &amp; OPERATING SYSTEM</div>
-          <div class="insp-field-val" id="insp-type">DESKTOP</div>
+          <div class="insp-field-label">IDENTITY &amp; OS ENVIRONMENT</div>
+          <div class="insp-field-val" id="insp-type">WORKSTATION</div>
           <div class="insp-field-val" style="color:var(--text-muted);font-size:0.75rem;" id="insp-os">Windows 11 Pro</div>
+          <div class="insp-field-val" style="color:var(--text-dim);font-size:0.72rem;" id="insp-subnet">Subnet: DMZ &amp; Web Perimeter</div>
         </div>
 
         <div class="insp-field-group">
-          <div class="insp-field-label">ASSIGNED SUBNET / ZONE</div>
-          <div class="insp-field-val" id="insp-subnet">DMZ &amp; Web Perimeter</div>
-        </div>
-
-        <div class="insp-field-group">
-          <div class="insp-field-label">ACTIVE PAYLOAD / CONDITION</div>
-          <div class="insp-field-val" style="color:#f87171;" id="insp-payload">Clean</div>
-        </div>
-
-        <div class="insp-field-group">
-          <div class="insp-field-label">UNPATCH CVE VULNERABILITIES</div>
-          <div id="insp-cves">
-            <span class="cve-pill">CVE-2017-0144</span>
-            <span class="cve-pill">CVE-2021-44228</span>
+          <div class="insp-field-label">BUSINESS ASSET IMPACT &amp; DOWNTIME</div>
+          <div class="insp-meta-grid">
+            <div><span class="dim-label">Criticality:</span> <strong id="insp-criticality">1.0 / 5.0</strong></div>
+            <div><span class="dim-label">Asset Base:</span> <strong id="insp-val">$5,000</strong></div>
+            <div><span class="dim-label">Downtime Loss:</span> <strong id="insp-downtime">$0</strong></div>
+            <div><span class="dim-label">Downtime Ticks:</span> <strong id="insp-downtime-ticks">0</strong></div>
           </div>
         </div>
 
         <div class="insp-field-group">
-          <div class="insp-field-label">ENDPOINT EVENT LOG</div>
+          <div class="insp-field-label">DEFENSE CONTROLS &amp; PATCH LEVEL</div>
+          <div class="insp-meta-grid" id="insp-controls-grid">
+            <div><span class="dim-label">EDR:</span> <strong id="insp-ctrl-edr">Inactive</strong></div>
+            <div><span class="dim-label">Firewall:</span> <strong id="insp-ctrl-fw">Active</strong></div>
+            <div><span class="dim-label">Patch Level:</span> <strong id="insp-ctrl-patch">50%</strong></div>
+            <div><span class="dim-label">Isolated:</span> <strong id="insp-ctrl-isolated">No</strong></div>
+          </div>
+        </div>
+
+        <div class="insp-field-group">
+          <div class="insp-field-label">ACTIVE SERVICES &amp; PROTOCOLS</div>
+          <div id="insp-services" class="services-list-box">
+            <span class="svc-tag">SMB:445</span>
+            <span class="svc-tag">RDP:3389</span>
+          </div>
+        </div>
+
+        <div class="insp-field-group">
+          <div class="insp-field-label">VULNERABILITIES (CVE PROFILES)</div>
+          <div id="insp-cves">
+            <span class="cve-pill">CVE-2017-0144</span>
+          </div>
+        </div>
+
+        <!-- Causal Transmission Analysis Box (Why is this node infected?) -->
+        <div class="insp-field-group causal-group">
+          <div class="insp-field-label">WHY IS THIS NODE INFECTED? (CAUSAL CHAIN)</div>
+          <div id="insp-causal-chain" class="causal-chain-box">
+            <div class="causal-empty">Click an exposed or infected node to analyze the exact causal transmission breakdown factors.</div>
+          </div>
+        </div>
+
+        <div class="insp-field-group">
+          <div class="insp-field-label">ENDPOINT EVENT &amp; TELEMETRY LOG</div>
           <div class="insp-logs-box" id="insp-logs">
             <div class="insp-log-entry">[SYS] System operational</div>
           </div>
         </div>
 
+        <!-- Defensive Incident Response Actions -->
         <div class="insp-actions">
-          <button id="btn-insp-patch" class="btn-insp patch">Deploy Emergency Patch</button>
-          <button id="btn-insp-infect" class="btn-insp infect">Inject Threat Vector Here</button>
-          <button id="btn-insp-isolate" class="btn-insp isolate">Engage Zero-Trust Shield</button>
+          <button id="btn-insp-investigate" class="btn-insp">Triage &amp; Investigate</button>
+          <button id="btn-insp-isolate" class="btn-insp isolate">Isolate Endpoint</button>
+          <button id="btn-insp-patch" class="btn-insp patch">Deploy Hotfix Patch</button>
+          <button id="btn-insp-restore" class="btn-insp restore">Restore Clean Image</button>
         </div>
       </aside>
     </div>
@@ -490,6 +590,110 @@
     </div>
   </div>
 
+  <!-- Modal 4: Attack Graph & Transmission Lineage Tree -->
+  <div id="modal-attack-tree" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="at-modal-title">
+    <div class="modal-window" style="max-width: 900px; max-height: 85vh;">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title" id="at-modal-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;display:inline-block;vertical-align:middle;margin-right:8px;color:#ef4444;"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+            Attack Graph &amp; Lateral Transmission Tree
+          </h3>
+          <div class="feed-meta-row">
+            <span class="feed-meta-label">TRACED INFECTIONS:</span>
+            <span id="at-infection-count" class="feed-meta-val">0</span>
+            <span class="feed-meta-sep">|</span>
+            <span class="feed-meta-label">MAX GENERATION DEPTH:</span>
+            <span id="at-generation-depth" class="feed-meta-val">0</span>
+          </div>
+        </div>
+        <button id="btn-close-attack-tree" class="btn-close" aria-label="Close Attack Graph Modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="attack-tree-filters" style="margin-bottom:12px;display:flex;gap:10px;flex-wrap:wrap;">
+          <input type="text" id="at-search-input" class="db-input" placeholder="Filter lineage by node, IP, or CVE..." style="flex:1;min-width:200px;">
+          <div class="db-filter-pills">
+            <button class="db-filter-btn active" data-filter="all">All Hops</button>
+            <button class="db-filter-btn" data-filter="exploited">Exploited Hops</button>
+            <button class="db-filter-btn" data-filter="blocked">Blocked Hops</button>
+            <button class="db-filter-btn" data-filter="critical">High Criticality Assets</button>
+          </div>
+        </div>
+        <div id="attack-tree-container" class="attack-tree-container">
+          <!-- Populated dynamically from MetricsEngine transmission lineage -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 5: Failure Injection Console -->
+  <div id="modal-failure-injection" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="fi-modal-title">
+    <div class="modal-window" style="max-width: 650px;">
+      <div class="modal-header">
+        <h3 class="modal-title" id="fi-modal-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;display:inline-block;vertical-align:middle;margin-right:8px;color:#f59e0b;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          Chaos &amp; Failure Injection Console
+        </h3>
+        <button id="btn-close-failure-injection" class="btn-close" aria-label="Close Failure Injection Modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:14px;">Inject adversarial conditions to stress-test network resilience without altering simulation semantics.</p>
+        <div class="failure-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="failure-card" style="background:var(--bg-card);border:1px solid var(--border-glass);border-radius:8px;padding:12px;">
+            <h4 style="font-size:0.85rem;margin-bottom:4px;">Firewall Drop Outage</h4>
+            <p style="font-size:0.72rem;color:var(--text-dim);">Disables firewall packet filtering across subnets.</p>
+            <button id="btn-inject-fw-drop" class="btn-ctrl" style="width:100%;margin-top:8px;">Drop Firewall</button>
+          </div>
+          <div class="failure-card" style="background:var(--bg-card);border:1px solid var(--border-glass);border-radius:8px;padding:12px;">
+            <h4 style="font-size:0.85rem;margin-bottom:4px;">EDR Telemetry Outage</h4>
+            <p style="font-size:0.72rem;color:var(--text-dim);">Simulates cloud EDR disconnection across endpoints.</p>
+            <button id="btn-inject-edr-outage" class="btn-ctrl" style="width:100%;margin-top:8px;">Sever EDR Telemetry</button>
+          </div>
+          <div class="failure-card" style="background:var(--bg-card);border:1px solid var(--border-glass);border-radius:8px;padding:12px;">
+            <h4 style="font-size:0.85rem;margin-bottom:4px;">High Threat Pressure</h4>
+            <p style="font-size:0.72rem;color:var(--text-dim);">Accelerates lateral scanning probes (+50%).</p>
+            <button id="btn-inject-threat-pressure" class="btn-ctrl" style="width:100%;margin-top:8px;">Elevate Pressure</button>
+          </div>
+          <div class="failure-card" style="background:var(--bg-card);border:1px solid var(--border-glass);border-radius:8px;padding:12px;">
+            <h4 style="font-size:0.85rem;margin-bottom:4px;">Gateway Switch Partition</h4>
+            <p style="font-size:0.72rem;color:var(--text-dim);">Partitions inter-subnet traffic flow.</p>
+            <button id="btn-inject-router-crash" class="btn-ctrl" style="width:100%;margin-top:8px;">Crash Gateway</button>
+          </div>
+        </div>
+        <div style="margin-top:16px;text-align:right;">
+          <button id="btn-reset-failures" class="btn-feed-action primary">Reset All Failure Injections</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 6: Save, Load & Export Simulation Runs -->
+  <div id="modal-save-load" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="sl-modal-title">
+    <div class="modal-window" style="max-width: 650px;">
+      <div class="modal-header">
+        <h3 class="modal-title" id="sl-modal-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;display:inline-block;vertical-align:middle;margin-right:8px;color:#0284c7;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          Simulation Run Manager
+        </h3>
+        <button id="btn-close-save-load" class="btn-close" aria-label="Close Save/Load Modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
+          <button id="btn-save-current-run" class="btn-feed-action success">Save Current Run</button>
+          <button id="btn-export-run-json" class="btn-feed-action primary">Export Run (JSON)</button>
+          <label class="btn-feed-action" style="cursor:pointer;display:inline-flex;align-items:center;padding:8px 14px;background:var(--bg-card);border:1px solid var(--border-glass);border-radius:6px;font-size:0.75rem;font-weight:600;">
+            Import Run (JSON)
+            <input type="file" id="input-import-run" accept=".json" style="display:none;">
+          </label>
+        </div>
+        <div class="insp-field-label" style="margin-bottom:6px;">SAVED RUNS IN DATABASE</div>
+        <div id="saved-runs-list" class="saved-runs-list" style="max-height:220px;overflow-y:auto;">
+          <!-- Populated from SQLite server or localStorage -->
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- PDF Report Toast Notification -->
   <div id="report-toast" class="report-toast" style="display:none">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;color:#06b6d4"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
@@ -498,12 +702,31 @@
 
   <!-- Scripts -->
   <script src="js/icons.js"></script>
+
+  <!-- Authoritative Simulation Core (Pure & Decoupled) -->
+  <script src="js/simulation/RandomSource.js"></script>
+  <script src="js/simulation/EventQueue.js"></script>
+  <script src="js/simulation/NodeStateMachine.js"></script>
+  <script src="js/simulation/NodeModel.js"></script>
+  <script src="js/simulation/EdgeModel.js"></script>
+  <script src="js/simulation/ThreatModel.js"></script>
+  <script src="js/simulation/BuiltInThreats.js"></script>
+  <script src="js/simulation/NetworkModel.js"></script>
+  <script src="js/simulation/TransmissionModel.js"></script>
+  <script src="js/simulation/DetectionModel.js"></script>
+  <script src="js/simulation/DefenseModel.js"></script>
+  <script src="js/simulation/AttackerModel.js"></script>
+  <script src="js/simulation/MetricsEngine.js"></script>
+  <script src="js/simulation/FailureInjector.js"></script>
+  <script src="js/simulation/ScenarioEngine.js"></script>
+  <script src="js/simulation/SimulationEngine.js"></script>
+
+  <!-- Visualizer, Threat Feeds & UI -->
   <script src="js/database.js"></script>
   <script src="js/audio.js"></script>
   <script src="js/threat_feed.js"></script>
   <script src="js/report_engine.js"></script>
   <script src="js/network_engine.js"></script>
-  <script src="js/simulation_engine.js"></script>
   <script src="js/charts_engine.js"></script>
   <script src="js/app.js"></script>
 </body>
