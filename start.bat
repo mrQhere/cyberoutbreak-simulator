@@ -18,9 +18,9 @@ IF NOT EXIST "venv" (
 :: Activate virtual environment
 call venv\Scripts\activate.bat
 
-:: Install dependencies
+:: Install and update dependencies
 echo Installing/verifying dependencies...
-python -m pip install -r requirements.txt -q
+python -m pip install --upgrade -r requirements.txt -q
 
 :: Start the server in the background
 echo Starting server on port 8000...

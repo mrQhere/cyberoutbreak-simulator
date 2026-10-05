@@ -17,9 +17,9 @@ fi
 # Activate virtual environment
 source venv/bin/activate
 
-# Check and install dependencies
+# Check and install dependencies (and update them if requirements changed)
 echo "Installing/verifying dependencies..."
-python3 -m pip install -r requirements.txt --quiet
+python3 -m pip install --upgrade -r requirements.txt --quiet
 
 # Start the Flask server in the background
 echo "Starting server on port 8000..."
