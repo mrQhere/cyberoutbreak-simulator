@@ -48,9 +48,10 @@ def run_headless_tests():
     server_process = None
     if not wait_for_server(BASE_URL, timeout=1):
         print(f"[*] Starting local server on port {PORT}...")
+        root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         server_process = subprocess.Popen(
             [sys.executable, "server.py"],
-            cwd=os.path.dirname(os.path.abspath(__file__)),
+            cwd=root_dir,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
         )

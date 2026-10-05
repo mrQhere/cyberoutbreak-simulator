@@ -57,13 +57,13 @@ Don't trust our math? Good! You shouldn't trust strangers on the internet. Run t
 
 ```bash
 # 1. Pure simulation core unit tests (18 tests verifying determinism, R0, etc.)
-node test_simulation_core.js
+node tests/test_simulation_core.js
 
 # 2. Performance benchmark (Watch it handle 5,000 nodes at ~42ms per tick!)
-node test_performance.js
+node tests/test_performance.js
 
 # 3. Headless browser integration tests (Selenium + Firefox)
-python3 test_headless_app.py
+python3 tests/test_headless_app.py
 ```
 
 ---
