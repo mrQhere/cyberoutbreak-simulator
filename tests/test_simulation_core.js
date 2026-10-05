@@ -3,17 +3,17 @@
  * Tests all required invariant properties, SEIR progression, determinism, and replay.
  */
 const assert = require('assert');
-const SimulationEngine = require('./js/simulation/SimulationEngine');
-const NodeStateMachine = require('./js/simulation/NodeStateMachine');
-const NodeModel = require('./js/simulation/NodeModel');
-const EdgeModel = require('./js/simulation/EdgeModel');
-const NetworkModel = require('./js/simulation/NetworkModel');
-const ThreatModel = require('./js/simulation/ThreatModel');
-const RandomSource = require('./js/simulation/RandomSource');
-const FailureInjector = require('./js/simulation/FailureInjector');
-const DefenseModel = require('./js/simulation/DefenseModel');
-const MetricsEngine = require('./js/simulation/MetricsEngine');
-const EventQueue = require('./js/simulation/EventQueue');
+const SimulationEngine = require('../js/simulation/SimulationEngine');
+const NodeStateMachine = require('../js/simulation/NodeStateMachine');
+const NodeModel = require('../js/simulation/NodeModel');
+const EdgeModel = require('../js/simulation/EdgeModel');
+const NetworkModel = require('../js/simulation/NetworkModel');
+const ThreatModel = require('../js/simulation/ThreatModel');
+const RandomSource = require('../js/simulation/RandomSource');
+const FailureInjector = require('../js/simulation/FailureInjector');
+const DefenseModel = require('../js/simulation/DefenseModel');
+const MetricsEngine = require('../js/simulation/MetricsEngine');
+const EventQueue = require('../js/simulation/EventQueue');
 
 console.log('====================================================');
 console.log(' RUNNING COMPREHENSIVE SIMULATION CORE UNIT TESTS');

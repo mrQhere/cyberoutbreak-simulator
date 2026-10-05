@@ -2,10 +2,10 @@
  * Performance Profiler & Benchmark for CyberOutbreak Simulation Core
  * Tests 100, 500, 1000, and 5000 node scales.
  */
-const SimulationEngine = require('./js/simulation/SimulationEngine');
-const NetworkModel = require('./js/simulation/NetworkModel');
-const RandomSource = require('./js/simulation/RandomSource');
-const ThreatModel = require('./js/simulation/ThreatModel');
+const SimulationEngine = require('../js/simulation/SimulationEngine');
+const NetworkModel = require('../js/simulation/NetworkModel');
+const RandomSource = require('../js/simulation/RandomSource');
+const ThreatModel = require('../js/simulation/ThreatModel');
 
 console.log('====================================================');
 console.log(' PERFORMANCE & SCALE BENCHMARK (Phase 31)');
